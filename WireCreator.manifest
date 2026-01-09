@@ -1,0 +1,13 @@
+{
+    "autodeskProduct": "Fusion",
+    "type": "addin",
+    "id": "c0a9f8b1-d7e2-4a55-9c12-3e8f6a7b9c5d",
+    "author": "Wire Creator",
+    "description": {
+        "": "A simple add-in to create wires/cables between two circular profiles. Select two circular edges and the add-in will create a smooth lofted wire connecting them."
+    },
+    "version": "1.0.0",
+    "runOnStartup": false,
+    "supportedOS": "windows|mac",
+    "editEnabled": true
+}
