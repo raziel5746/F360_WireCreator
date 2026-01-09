@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wire Creator - Help</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1 { color: #0066cc; border-bottom: 2px solid #0066cc; padding-bottom: 10px; }
+        h2 { color: #444; margin-top: 30px; }
+        h3 { color: #555; }
+        code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; }
+        .step { background: #f9f9f9; padding: 15px; margin: 10px 0; border-left: 4px solid #0066cc; }
+        .step-number { font-weight: bold; color: #0066cc; }
+        .tip { background: #e7f3ff; padding: 15px; border-radius: 5px; margin: 15px 0; }
+        .tip::before { content: "💡 Tip: "; font-weight: bold; }
+        ul { padding-left: 20px; }
+        li { margin: 8px 0; }
+    </style>
+</head>
+<body>
+    <h1>Wire Creator for Fusion 360</h1>
+    <p>Wire Creator helps you quickly create wires, cables, and tubes between two circular profiles using a smooth loft operation.</p>
+
+    <h2>Quick Start Guide</h2>
+    
+    <div class="step">
+        <span class="step-number">Step 1:</span> Open a design with circular edges or faces (such as holes or cylindrical features).
+    </div>
+    
+    <div class="step">
+        <span class="step-number">Step 2:</span> Go to <strong>UTILITIES → Add-Ins → Scripts and Add-Ins</strong>, find <strong>Wire Creator</strong>, and click <strong>Run</strong>.
+    </div>
+    
+    <div class="step">
+        <span class="step-number">Step 3:</span> Click on the <strong>first circular edge or face</strong> where you want the wire to start.
+    </div>
+    
+    <div class="step">
+        <span class="step-number">Step 4:</span> Click on the <strong>second circular edge or face</strong> where you want the wire to end.
+    </div>
+    
+    <div class="step">
+        <span class="step-number">Step 5:</span> Adjust the <strong>Center Point Offset</strong> to control how much the wire curves.
+    </div>
+    
+    <div class="step">
+        <span class="step-number">Step 6:</span> If needed, use the <strong>Flip</strong> checkboxes to adjust the orientation of the wire ends.
+    </div>
+    
+    <div class="step">
+        <span class="step-number">Step 7:</span> Click <strong>OK</strong> to create the wire geometry.
+    </div>
+
+    <h2>Parameters</h2>
+    
+    <h3>First Profile / Second Profile</h3>
+    <p>Select circular edges or faces (other profile shapes are also supported).</p>
+
+    <h3>Flip</h3>
+    <p>Each profile has a <strong>Flip</strong> checkbox. Use this to reverse the direction of the wire at that end if it's going the wrong way.</p>
+
+    <h3>Center Point Offset</h3>
+    <p>Controls the curvature of the wire:</p>
+    <ul>
+        <li><strong>Positive values</strong>: Creates a bow/droop in the direction determined by profile orientations</li>
+        <li><strong>Negative values</strong>: Creates a curve in the opposite direction</li>
+        <li><strong>Zero</strong>: Creates a straight connection (when profiles face each other)</li>
+    </ul>
+
+    <div class="tip">
+        The curvature automatically scales based on how the profiles are oriented relative to each other. When profiles face directly toward each other, the offset has minimal effect.
+    </div>
+
+    <h2>Tips for Best Results</h2>
+    <ul>
+        <li>For the smoothest wires, select profiles that are roughly the same size</li>
+        <li>The preview updates in real-time as you adjust settings</li>
+        <li>If the wire looks twisted, try using the Flip checkboxes</li>
+        <li>The wire is created as a solid body that you can modify further</li>
+    </ul>
+
+    <div class="tip">
+        After the wire is created, you can use the <strong>Move</strong> tool to adjust the points and handles of the sketch curve. This is especially useful for fine-tuning the shape of the wire by moving the center point of the curve.
+    </div>
+
+    <h2>Troubleshooting</h2>
+    
+    <h3>Wire goes in wrong direction</h3>
+    <p>Use the <strong>Flip</strong> checkbox for the profile that needs correction.</p>
+    
+    <h3>"Profiles are too close" error</h3>
+    <p>The selected profiles are nearly coincident. Select profiles that are further apart.</p>
+    
+    <h3>Loft fails</h3>
+    <p>This can happen if the profiles have very different sizes or if the curvature causes self-intersection. Try increasing the Center Point Offset value.</p>
+
+    <h2>Support</h2>
+    <p>For questions, bug reports, or feature requests, please contact:<br>
+    <strong>Email:</strong> raz.mobility888@passmail.com</p>
+
+    <hr>
+    <p><em>Wire Creator v1.0.0 - © 2026 Raziel Diaz</em></p>
+</body>
+</html>

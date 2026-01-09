@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ApplicationPackage 
+    SchemaVersion="1.0" 
+    AutodeskProduct="Fusion360" 
+    ProductType="Application" 
+    Name="Wire Creator" 
+    AppVersion="1.0.0" 
+    Description="Create wires and cables between circular profiles with smooth loft geometry" 
+    Author="Raziel Diaz" 
+    HelpFile="./Contents/help.html" 
+    OnlineDocumentation="https://github.com/raziel5746/F360_WireCreator" 
+    Icon="./Contents/Resources/icon_32x32.png">
+
+    <CompanyDetails 
+        Name="Raziel Diaz" 
+        Email="raz.mobility888@passmail.com" 
+        Url="https://yourwebsite.com" 
+        Phone=""/>
+
+    <RuntimeRequirements 
+        OS="Win64|Mac64" 
+        Platform="Fusion360"/>
+
+    <Components Description="Main Add-in">
+        <RuntimeRequirements OS="Win64|Mac64" Platform="Fusion360"/>
+        <ComponentEntry AppType="AddIn" ModuleName="./Contents/WireCreator.py"/>
+    </Components>
+
+</ApplicationPackage>
