@@ -1,6 +1,6 @@
-# Wire Creator for Fusion 360
+# Simple Wire Creator for Fusion 360
 
-Wire Creator is a powerful add-in that simplifies the process of creating wires, cables, tubes, and conduits between two circular profiles in Fusion 360. With just two clicks, you can generate smooth, professional-looking connections that would otherwise require multiple manual steps.
+Simple Wire Creator is a powerful add-in that simplifies the process of creating wires, cables, tubes, and conduits between two circular profiles in Fusion 360. With just two clicks, you can generate smooth, professional-looking connections that would otherwise require multiple manual steps.
 
 ## Key Features
 
@@ -56,4 +56,4 @@ For questions, bug reports, or feature requests, please contact us at raz.mobili
 
 ---
 
-*Wire Creator - Making cable routing in Fusion 360 fast and easy!*
+*Simple Wire Creator - Making cable routing in Fusion 360 fast and easy!*

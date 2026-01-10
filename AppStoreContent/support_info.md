@@ -1,4 +1,4 @@
-# Wire Creator - Support Information
+# Simple Wire Creator - Support Information
 
 ## Contact
 

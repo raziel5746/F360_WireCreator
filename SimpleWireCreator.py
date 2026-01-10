@@ -5,6 +5,7 @@ import adsk.core
 import adsk.fusion
 import traceback
 import math
+import os
 
 handlers = []
 
@@ -14,13 +15,16 @@ def run(context):
         app = adsk.core.Application.get()
         ui = app.userInterface
         
+        # Get the path to the Resources folder for icons
+        resourceFolder = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Resources')
+        
         cmdDef = ui.commandDefinitions.itemById('WireCreatorCommand')
         if not cmdDef:
             cmdDef = ui.commandDefinitions.addButtonDefinition(
                 'WireCreatorCommand',
-                'Wire Creator',
+                'Simple Wire Creator',
                 'Create a wire/cable between two edges or faces',
-                ''
+                resourceFolder
             )
         
         onCommandCreated = WireCreatorCommandCreatedHandler()
@@ -35,7 +39,7 @@ def run(context):
         
     except:
         if ui:
-            ui.messageBox('Failed to start Wire Creator:\n{}'.format(traceback.format_exc()))
+            ui.messageBox('Failed to start Simple Wire Creator:\n{}'.format(traceback.format_exc()))
 
 
 def stop(context):
