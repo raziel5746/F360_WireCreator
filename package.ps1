@@ -26,6 +26,11 @@ Write-Host "[1/3] Syncing bundle with source files..." -ForegroundColor Green
 Copy-Item -Path "$SourceDir\SimpleWireCreator.py" -Destination "$SourceDir\$BundleName\Contents\" -Force
 Copy-Item -Path "$SourceDir\SimpleWireCreator.manifest" -Destination "$SourceDir\$BundleName\Contents\" -Force
 
+# Sync Resources folder
+if (Test-Path "$SourceDir\Resources") {
+    Copy-Item -Path "$SourceDir\Resources" -Destination "$SourceDir\$BundleName\Contents\" -Recurse -Force
+}
+
 # Remove old zip if exists
 if (Test-Path "$SourceDir\$ZipName") {
     Write-Host "[2/3] Removing old zip file..." -ForegroundColor Yellow

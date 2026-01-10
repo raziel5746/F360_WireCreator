@@ -106,14 +106,63 @@ class WireCreatorCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
                 '',
                 False
             )
-            
-            # Center point offset (formerly "Wire Droop")
-            offsetInput = inputs.addValueInput(
-                'droopAmount',
-                'Center Point Offset',
-                'mm',
-                adsk.core.ValueInput.createByReal(0.3)
+            # Midpoint count button row (horizontal, 1, 2, or 3)
+            resourceFolder = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Resources')
+            midpointRow = inputs.addButtonRowCommandInput(
+                'midpointCount',
+                'Spline Midpoints',
+                False  # isMultiSelectEnabled = False for single selection
             )
+            midpointRow.listItems.add('1', True, os.path.join(resourceFolder, 'midpoint_1'))
+            midpointRow.listItems.add('2', False, os.path.join(resourceFolder, 'midpoint_2'))
+            midpointRow.listItems.add('3', False, os.path.join(resourceFolder, 'midpoint_3'))
+
+            # Midpoints Offset spinner (0-1000mm, default 3mm, step 1mm)
+            offsetSpinner = inputs.addFloatSpinnerCommandInput(
+                'droopAmount',
+                'Midpoints Offset',
+                'mm',
+                0,     # min 0mm
+                1000,  # max 1000mm
+                1,     # step 1mm
+                3      # default 3mm
+            )
+            
+            # Invert Offset checkbox
+            invertCheck = inputs.addBoolValueInput('invertOffset', 'Invert Offset', True, '', False)
+            
+            # Endpoints Strength spinner (1-50%, default 5%, step 5%)
+            endpointSpinner = inputs.addFloatSpinnerCommandInput(
+                'handleStrength',
+                'Endpoints Strength',
+                '',    # No units (percentage)
+                1,     # min 1%
+                50,    # max 50%
+                5,     # step 5%
+                5      # default 5%
+            )
+            
+            # Inherit Appearance checkbox
+            inheritCheck = inputs.addBoolValueInput('inheritAppearance', 'Inherit Appearance', True, '', False)
+            
+            # Tint Color dropdown
+            tintDropdown = inputs.addDropDownCommandInput(
+                'tintColor',
+                'Tint Color',
+                adsk.core.DropDownStyles.LabeledIconDropDownStyle
+            )
+            tintItems = tintDropdown.listItems
+            tintItems.add('None', True)
+            tintItems.add('Black', False)
+            tintItems.add('White', False)
+            tintItems.add('Red', False)
+            tintItems.add('Blue', False)
+            tintItems.add('Green', False)
+            tintItems.add('Yellow', False)
+            tintItems.add('Orange', False)
+            tintItems.add('Brown', False)
+            tintItems.add('Grey', False)
+            tintItems.add('Pink', False)
             
             onExecute = WireCreatorExecuteHandler()
             cmd.execute.add(onExecute)
@@ -181,6 +230,11 @@ class WireCreatorPreviewHandler(adsk.core.CommandEventHandler):
             droopInput = inputs.itemById('droopAmount')
             flip1Input = inputs.itemById('flipDirection1')
             flip2Input = inputs.itemById('flipDirection2')
+            midpointInput = inputs.itemById('midpointCount')
+            handleInput = inputs.itemById('handleStrength')
+            invertInput = inputs.itemById('invertOffset')
+            inheritInput = inputs.itemById('inheritAppearance')
+            tintInput = inputs.itemById('tintColor')
             
             if sel1Input.selectionCount == 0 or sel2Input.selectionCount == 0:
                 return
@@ -188,16 +242,37 @@ class WireCreatorPreviewHandler(adsk.core.CommandEventHandler):
             entity1 = sel1Input.selection(0).entity
             entity2 = sel2Input.selection(0).entity
             
-            # Get offset value (can be negative)
+            # Get offset value from spinner
             droopValue = droopInput.value
+            
+            # Apply invert if checked
+            if invertInput and invertInput.value:
+                droopValue = -droopValue
+            
             flip1 = flip1Input.value
             flip2 = flip2Input.value
+            
+            # Get midpoint count from radio buttons
+            midpointCount = 1
+            if midpointInput:
+                selectedItem = midpointInput.selectedItem
+                if selectedItem:
+                    midpointCount = int(selectedItem.name)
+            
+            # Get endpoints strength (percentage)
+            handleStrength = 5.0
+            if handleInput:
+                handleStrength = handleInput.value
+            
+            # Get appearance inputs
+            useInherit = inheritInput.value if inheritInput else True
+            tintColorName = tintInput.selectedItem.name if tintInput and tintInput.selectedItem else 'None'
             
             app = adsk.core.Application.get()
             design = adsk.fusion.Design.cast(app.activeProduct)
             comp = design.activeComponent
             
-            createWire(comp, entity1, entity2, droopValue, flip1, flip2, None, isPreview=True)
+            createWire(comp, entity1, entity2, droopValue, flip1, flip2, midpointCount, handleStrength, None, isPreview=True, useInherit=useInherit, tintColorName=tintColorName)
             eventArgs.isValidResult = True
             
         except:
@@ -225,6 +300,11 @@ class WireCreatorExecuteHandler(adsk.core.CommandEventHandler):
             droopInput = inputs.itemById('droopAmount')
             flip1Input = inputs.itemById('flipDirection1')
             flip2Input = inputs.itemById('flipDirection2')
+            midpointInput = inputs.itemById('midpointCount')
+            handleInput = inputs.itemById('handleStrength')
+            invertInput = inputs.itemById('invertOffset')
+            inheritInput = inputs.itemById('inheritAppearance')
+            tintInput = inputs.itemById('tintColor')
             
             if sel1Input.selectionCount == 0 or sel2Input.selectionCount == 0:
                 ui.messageBox('Please select both profiles.')
@@ -233,13 +313,34 @@ class WireCreatorExecuteHandler(adsk.core.CommandEventHandler):
             entity1 = sel1Input.selection(0).entity
             entity2 = sel2Input.selection(0).entity
             
-            # Get offset value (can be negative)
+            # Get offset value from spinner
             droopValue = droopInput.value
+            
+            # Apply invert if checked
+            if invertInput and invertInput.value:
+                droopValue = -droopValue
+            
             flip1 = flip1Input.value
             flip2 = flip2Input.value
             
+            # Get midpoint count from radio buttons
+            midpointCount = 1
+            if midpointInput:
+                selectedItem = midpointInput.selectedItem
+                if selectedItem:
+                    midpointCount = int(selectedItem.name)
+            
+            # Get endpoints strength (percentage)
+            handleStrength = 5.0
+            if handleInput:
+                handleStrength = handleInput.value
+            
+            # Get appearance inputs
+            useInherit = inheritInput.value if inheritInput else True
+            tintColorName = tintInput.selectedItem.name if tintInput and tintInput.selectedItem else 'None'
+            
             comp = design.activeComponent
-            createWire(comp, entity1, entity2, droopValue, flip1, flip2, ui, isPreview=False)
+            createWire(comp, entity1, entity2, droopValue, flip1, flip2, midpointCount, handleStrength, ui, isPreview=False, useInherit=useInherit, tintColorName=tintColorName)
             
         except:
             app = adsk.core.Application.get()
@@ -352,8 +453,107 @@ def getProfileInfo(entity):
     return center, normal, loftEntity, constraintFace
 
 
-def createWire(comp, entity1, entity2, droopAmount, flipDir1, flipDir2, ui, isPreview=False):
-    """Create a wire between two profiles."""
+def applyAppearance(body, useInherit, tintColorName, sourceAppearance):
+    """Apply an appearance or custom color to a body with support for inheritance and tinting."""
+    try:
+        app = adsk.core.Application.get()
+        design = adsk.fusion.Design.cast(app.activeProduct)
+        if not design:
+            return
+
+        # If inheritance is off and no tint is selected, do nothing (keep default)
+        if not useInherit and tintColorName == 'None':
+            return
+
+        finalAppearance = None
+        baseAppearance = None
+
+        if useInherit and sourceAppearance:
+            baseAppearance = sourceAppearance
+        elif tintColorName != 'None':
+            # Search for a neutral base material (ABS White ideally)
+            # Try a few common template names for a neutral base
+            templateNames = [
+                'ABS (White)', 
+                'Plastic - Matte (White)', 
+                'Plastic - Glossy (White)', 
+                'Paint - Enamel Glossy (White)'
+            ]
+            
+            # Known modern Fusion library name and some fallbacks
+            libNames = ['Fusion Appearance Library', 'Fusion 360 Appearance Library']
+            
+            for libName in libNames:
+                lib = app.materialLibraries.itemByName(libName)
+                if lib:
+                    for tName in templateNames:
+                        baseAppearance = lib.appearances.itemByName(tName)
+                        if baseAppearance: break
+                if baseAppearance: break
+            
+            # Fallback to any library if still not found
+            if not baseAppearance:
+                for lib in app.materialLibraries:
+                    for tName in templateNames:
+                        baseAppearance = lib.appearances.itemByName(tName)
+                        if baseAppearance: break
+                    if baseAppearance: break
+
+        if tintColorName != 'None' and baseAppearance:
+            # Define tint colors (RGB) - Realistic insulation colors
+            tintColors = {
+                'Black': (25, 25, 25),
+                'White': (235, 235, 235),
+                'Red': (190, 30, 30),
+                'Blue': (0, 85, 175),
+                'Green': (40, 140, 50),
+                'Yellow': (250, 200, 0),
+                'Orange': (240, 100, 0),
+                'Brown': (110, 60, 30),
+                'Grey': (110, 110, 110),
+                'Pink': (230, 100, 160)
+            }
+            
+            if tintColorName in tintColors:
+                # Create a unique name for the tinted appearance
+                # If we're not inheriting, we don't want to prefix with the source material name necessarily,
+                # but for simplicity we'll use the base name.
+                newAppearanceName = 'Wire_' + tintColorName
+                if useInherit and sourceAppearance:
+                    newAppearanceName = sourceAppearance.name + "_" + tintColorName
+                
+                # Check if it already exists in the design
+                finalAppearance = design.appearances.itemByName(newAppearanceName)
+                
+                if not finalAppearance:
+                    # Clone the base appearance
+                    finalAppearance = design.appearances.addByCopy(baseAppearance, newAppearanceName)
+                    
+                    # Try to find the color property to change
+                    colorPropNames = ['Color', 'reflectance_color', 'base_color']
+                    colorProp = None
+                    for pName in colorPropNames:
+                        colorProp = finalAppearance.appearanceProperties.itemByName(pName)
+                        if colorProp: break
+                    
+                    if colorProp:
+                        r, g, b = tintColors[tintColorName]
+                        colorProp = adsk.core.ColorProperty.cast(colorProp)
+                        if colorProp:
+                            colorProp.value = adsk.core.Color.create(r, g, b, 255)
+        elif useInherit:
+            # No tint, just inherit
+            finalAppearance = baseAppearance
+
+        if finalAppearance:
+            body.appearance = finalAppearance
+            
+    except:
+        pass
+
+
+def createWire(comp, entity1, entity2, droopAmount, flipDir1, flipDir2, midpointCount, handleStrength, ui, isPreview=False, useInherit=True, tintColorName='None'):
+    """Create a wire between two profiles with configurable midpoints and handle strength."""
     try:
         # Get geometry info
         center1, normal1, loftEntity1, face1 = getProfileInfo(entity1)
@@ -386,7 +586,6 @@ def createWire(comp, entity1, entity2, droopAmount, flipDir1, flipDir2, ui, isPr
         wireDir.normalize()
         
         # Determine if each entity is a face or edge for normal handling
-        # Determine if each entity is a face or edge for normal handling
         isFace1 = isinstance(entity1, adsk.fusion.BRepFace)
         isFace2 = isinstance(entity2, adsk.fusion.BRepFace)
         
@@ -409,11 +608,6 @@ def createWire(comp, entity1, entity2, droopAmount, flipDir1, flipDir2, ui, isPr
         
         if flipDir2:
             normal2 = adsk.core.Vector3D.create(-normal2.x, -normal2.y, -normal2.z)
-        
-        # Calculate midpoint
-        midX = (center1.x + center2.x) / 2
-        midY = (center1.y + center2.y) / 2
-        midZ = (center1.z + center2.z) / 2
         
         # Calculate offset using trigonometry based on normal alignment
         # Note: When profiles both point "up", their normals actually point OPPOSITE
@@ -461,11 +655,28 @@ def createWire(comp, entity1, entity2, droopAmount, flipDir1, flipDir2, ui, isPr
         # Apply scaled offset: full amount when aligned, zero when opposite
         scaledOffset = droopAmount * alignmentFactor
         
-        midPoint = adsk.core.Point3D.create(
-            midX + droopDir.x * scaledOffset,
-            midY + droopDir.y * scaledOffset,
-            midZ + droopDir.z * scaledOffset
-        )
+        # Generate evenly distributed midpoints along the wire
+        # Midpoints are placed at equal intervals between center1 and center2
+        midPoints = []
+        for i in range(midpointCount):
+            # Calculate parameter t for this midpoint (evenly spaced)
+            # For 1 midpoint: t = 0.5
+            # For 2 midpoints: t = 0.333, 0.667
+            # For 3 midpoints: t = 0.25, 0.5, 0.75
+            t = (i + 1) / (midpointCount + 1)
+            
+            # Linear interpolation for base position
+            baseX = center1.x + (center2.x - center1.x) * t
+            baseY = center1.y + (center2.y - center1.y) * t
+            baseZ = center1.z + (center2.z - center1.z) * t
+            
+            # Apply full offset to all midpoints
+            midPoint = adsk.core.Point3D.create(
+                baseX + droopDir.x * scaledOffset,
+                baseY + droopDir.y * scaledOffset,
+                baseZ + droopDir.z * scaledOffset
+            )
+            midPoints.append(midPoint)
         
         # Create 3D sketch
         sketches = comp.sketches
@@ -482,9 +693,6 @@ def createWire(comp, entity1, entity2, droopAmount, flipDir1, flipDir2, ui, isPr
         localCenter1 = center1.copy()
         localCenter1.transformBy(sketchTransformInv)
         
-        localMidPoint = midPoint.copy()
-        localMidPoint.transformBy(sketchTransformInv)
-        
         localCenter2 = center2.copy()
         localCenter2.transformBy(sketchTransformInv)
         
@@ -497,10 +705,18 @@ def createWire(comp, entity1, entity2, droopAmount, flipDir1, flipDir2, ui, isPr
         localNormal2.transformBy(sketchTransformInv)
         localNormal2.normalize()
         
-        # Create spline
+        # Transform midpoints to sketch local coordinates
+        localMidPoints = []
+        for mp in midPoints:
+            localMp = mp.copy()
+            localMp.transformBy(sketchTransformInv)
+            localMidPoints.append(localMp)
+        
+        # Create fitted spline (passes through all points)
         points = adsk.core.ObjectCollection.create()
         points.add(localCenter1)
-        points.add(localMidPoint)
+        for localMp in localMidPoints:
+            points.add(localMp)
         points.add(localCenter2)
         
         spline = sketch.sketchCurves.sketchFittedSplines.add(points)
@@ -510,26 +726,23 @@ def createWire(comp, entity1, entity2, droopAmount, flipDir1, flipDir2, ui, isPr
                 ui.messageBox('Failed to create spline.')
             return
         
-        # Set tangent handles to be perpendicular to the faces
-        # by explicitly positioning the tangent handle endpoints
+        # Set tangent handles only for endpoints (controlled by Handle Strength slider)
+        # Let Fusion auto-calculate midpoint tangents for naturally smooth curves
         try:
             fitPoints = spline.fitPoints
             if fitPoints.count >= 2:
                 firstFitPoint = fitPoints.item(0)
                 lastFitPoint = fitPoints.item(fitPoints.count - 1)
                 
-                # Activate tangent handles
+                # Activate tangent handles for endpoints only
                 tangentLine1 = spline.activateTangentHandle(firstFitPoint)
                 tangentLine2 = spline.activateTangentHandle(lastFitPoint)
                 
-                # Calculate desired tangent handle endpoints
-                # Tangent handle length = 1/3 of the droop (minimum 0.05cm = 0.5mm)
-                tangentLength = max(abs(droopAmount) / 3, 0.05)
+                # Calculate tangent length from handle strength (percentage of wire length)
+                tangentLength = wireLength * (handleStrength / 100.0)
+                tangentLength = max(tangentLength, 0.05)  # minimum 0.05cm = 0.5mm
                 
                 if tangentLine1:
-                    # Move the outer endpoint of the tangent line along normal1
-                    # The tangent line goes from the fit point to the handle
-                    # We want the handle to point along normal1
                     newEndPoint = adsk.core.Point3D.create(
                         localCenter1.x + localNormal1.x * tangentLength,
                         localCenter1.y + localNormal1.y * tangentLength,
@@ -547,7 +760,6 @@ def createWire(comp, entity1, entity2, droopAmount, flipDir1, flipDir2, ui, isPr
                         pass
                 
                 if tangentLine2:
-                    # For the second tangent, normal2 points toward center1, so use it directly
                     newEndPoint = adsk.core.Point3D.create(
                         localCenter2.x + localNormal2.x * tangentLength,
                         localCenter2.y + localNormal2.y * tangentLength,
@@ -563,21 +775,9 @@ def createWire(comp, entity1, entity2, droopAmount, flipDir1, flipDir2, ui, isPr
                         )
                     except:
                         pass
-                
-                # Also try to add perpendicular constraints as backup
-                constraints = sketch.geometricConstraints
-                if tangentLine1 and face1:
-                    try:
-                        constraints.addPerpendicular(tangentLine1, face1)
-                    except:
-                        pass
-                if tangentLine2 and face2:
-                    try:
-                        constraints.addPerpendicular(tangentLine2, face2)
-                    except:
-                        pass
         except:
             pass
+        
         
         # Create loft
         loftFeats = comp.features.loftFeatures
@@ -590,7 +790,21 @@ def createWire(comp, entity1, entity2, droopAmount, flipDir1, flipDir2, ui, isPr
         
         try:
             loftFeat = loftFeats.add(loftInput)
-            if not loftFeat and ui and not isPreview:
+            if loftFeat:
+                # Determine source appearance if needed
+                sourceAppearance = None
+                try:
+                    if hasattr(entity1, 'appearance') and entity1.appearance:
+                        sourceAppearance = entity1.appearance
+                    elif hasattr(entity1, 'body') and entity1.body.appearance:
+                        sourceAppearance = entity1.body.appearance
+                except:
+                    pass
+
+                # Apply appearance to the resulting body
+                if loftFeat.bodies.count > 0:
+                    applyAppearance(loftFeat.bodies.item(0), useInherit, tintColorName, sourceAppearance)
+            elif ui and not isPreview:
                 ui.messageBox('Loft failed.')
         except Exception as e:
             if ui and not isPreview:
